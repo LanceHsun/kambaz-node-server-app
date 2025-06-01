@@ -17,6 +17,10 @@ app.use(cors({
   origin: process.env.NETLIFY_URL || "http://localhost:5173"
 }));
 
+app.get("/", (req, res) => {
+  res.send("Welcome to Full Stack Development!");
+});
+
 const sessionOptions = {
   secret: process.env.SESSION_SECRET || "kambaz",
   resave: false,
