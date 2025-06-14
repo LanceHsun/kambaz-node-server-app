@@ -29,6 +29,7 @@ if (process.env.NODE_ENV === "production") {
 // 配置CORS
 const allowedOrigins = [
   process.env.NETLIFY_URL,
+  "https://a6--kambaz-react-web-app-zixin-lin.netlify.app",
   "http://localhost:5173",
   "http://localhost:3000",
   "http://localhost:5174"
@@ -53,16 +54,15 @@ app.use(cors({
   exposedHeaders: ["set-cookie"]
 }));
 
-// 创建会话存储
+
 const mongoStore = MongoStore.create({
   mongoUrl: CONNECTION_STRING,
   collectionName: "sessions",
   ttl: 24 * 60 * 60,
   autoRemove: 'native',
-  touchAfter: 24 * 3600 // 24小时内不频繁更新会话，减少负载
+  touchAfter: 24 * 3600 
 });
 
-// 监听会话存储事件用于调试
 mongoStore.on('create', (sessionId) => {
   console.log('Session created:', sessionId);
 });
@@ -75,21 +75,19 @@ mongoStore.on('destroy', (sessionId) => {
   console.log('Session destroyed:', sessionId);
 });
 
-// 配置会话选项
 const sessionOptions = {
   secret: process.env.SESSION_SECRET || "kambaz",
   resave: false,
   saveUninitialized: false,
   store: mongoStore,
   cookie: {
-    secure: false,
+    secure: process.env.NODE_ENV === "production",
     httpOnly: true,
-    maxAge: 24 * 60 * 60 * 1000, // 24小时
-    sameSite: 'lax'
+    maxAge: 24 * 60 * 60 * 1000,
+    sameSite: process.env.NODE_ENV === "production" ? "none" : "lax"
   }
 };
 
-// 在生产环境中调整会话配置
 if (process.env.NODE_ENV === "production") {
   sessionOptions.cookie.secure = true;
   sessionOptions.cookie.sameSite = "none";
@@ -102,7 +100,6 @@ if (process.env.NODE_ENV === "production") {
 app.use(session(sessionOptions));
 app.use(express.json());
 
-// 请求日志中间件
 app.use((req, res, next) => {
   console.log(`${new Date().toISOString()} - ${req.method} ${req.path} - IP: ${req.ip}`);
   
@@ -110,7 +107,6 @@ app.use((req, res, next) => {
     console.log('Signin attempt for username:', req.body.username);
   }
   
-  // 记录会话信息
   console.log('Session ID:', req.sessionID);
   console.log('Session exists:', !!req.session);
   console.log('Current user in session:', req.session?.currentUser?.username || 'None');
