@@ -9,8 +9,8 @@ export default function UserRoutes(app) {
   };
 
   const deleteUser = async (req, res) => {
-    await dao.deleteUser(req.params.userId);
-    res.sendStatus(200);
+    const status = await dao.deleteUser(req.params.userId);
+    res.json(status);
   };
 
   const findAllUsers = async (req, res) => {
@@ -42,7 +42,7 @@ export default function UserRoutes(app) {
     if (currentUser && currentUser._id === userId) {
       req.session["currentUser"] = { ...currentUser, ...userUpdates };
     }
-    res.json(req.session["currentUser"]);
+    res.json(currentUser);
   };
 
   const signup = async (req, res) => {
@@ -58,19 +58,10 @@ export default function UserRoutes(app) {
 
   const signin = async (req, res) => {
     const { username, password } = req.body;
-    console.log("Signin attempt for:", username);
     const currentUser = await dao.findUserByCredentials(username, password);
     if (currentUser) {
       req.session["currentUser"] = currentUser;
-      req.session.save((err) => {
-        if (err) {
-          console.error("Session save error:", err);
-          res.status(500).json({ message: "Session save failed" });
-        } else {
-          console.log("Session saved successfully");
-          res.json(currentUser);
-        }
-      });
+      res.json(currentUser);
     } else {
       res.status(401).json({ message: "Unable to login. Try again later." });
     }
