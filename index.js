@@ -20,13 +20,11 @@ mongoose.connect(CONNECTION_STRING)
 
 const app = express();
 
-// 在生产环境中信任代理
 if (process.env.NODE_ENV === "production") {
   app.set('trust proxy', 1);
   console.log("Running in production mode - trust proxy enabled");
 }
 
-// 配置CORS
 const allowedOrigins = [
   process.env.NETLIFY_URL,
   "https://a6--kambaz-react-web-app-zixin-lin.netlify.app",
@@ -111,13 +109,11 @@ app.use((req, res, next) => {
   console.log('Session exists:', !!req.session);
   console.log('Current user in session:', req.session?.currentUser?.username || 'None');
   
-  // 记录Cookie信息
   console.log('Cookies received:', req.headers.cookie || 'No cookies');
   
   next();
 });
 
-// 测试路由，用于检查会话是否正常工作
 app.get('/api/test-session', (req, res) => {
   if (!req.session.views) {
     req.session.views = 1;
@@ -132,7 +128,6 @@ app.get('/api/test-session', (req, res) => {
   });
 });
 
-// 注册所有路由
 Hello(app);
 Lab5(app);
 UserRoutes(app);
